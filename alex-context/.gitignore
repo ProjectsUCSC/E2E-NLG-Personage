@@ -1,0 +1,4 @@
+.qsubmit-*.bash
+data
+runs
+input/*.txt
