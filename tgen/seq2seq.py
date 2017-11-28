@@ -23,7 +23,7 @@ from tgen.futil import read_das, read_ttrees, trees_from_doc, tokens_from_doc, c
     read_tokens, tagged_lemmas_from_doc
 from tgen.embeddings import DAEmbeddingSeq2SeqExtract, TokenEmbeddingSeq2SeqExtract, \
     TreeEmbeddingSeq2SeqExtract, ContextDAEmbeddingSeq2SeqExtract, \
-    TaggedLemmasEmbeddingSeq2SeqExtract
+    TaggedLemmasEmbeddingSeq2SeqExtract, PersonageContextDAEmbeddingSeq2SeqExtract
 from tgen.rnd import rnd
 from tgen.planner import SentencePlanner
 from tgen.tree import TreeData, TreeNode
@@ -399,6 +399,8 @@ class Seq2SeqGen(Seq2SeqBase, TFModel):
 
         self.use_context = cfg.get('use_context', False)
 
+        self.use_personage_context = cfg.get('use_personage_context', False)
+
         # Train Summaries
         self.loss_summary_seq2seq = None
 
@@ -451,7 +453,11 @@ class Seq2SeqGen(Seq2SeqBase, TFModel):
 
         # initialize embeddings
         if self.use_context:
-            self.da_embs = ContextDAEmbeddingSeq2SeqExtract(cfg=self.cfg)
+            if self.use_personage_context:
+                self.da_embs =  PersonageContextDAEmbeddingSeq2SeqExtract(cfg=self.cfg)
+
+            else:
+                self.da_embs = ContextDAEmbeddingSeq2SeqExtract(cfg=self.cfg)
         else:
             self.da_embs = DAEmbeddingSeq2SeqExtract(cfg=self.cfg)
         if self.mode == 'tokens':

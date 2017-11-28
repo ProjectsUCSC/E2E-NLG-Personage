@@ -267,6 +267,61 @@ class ContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
     def get_embeddings_shape(self):
         return [self.max_context_len + 3 * self.max_da_len + (1 if self.use_div_token else 0)]
 
+class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
+    """This encodes both context user utterance and input DA into a combined embedding (list of IDs)"""
+
+    UNK_TOKEN = 3
+    DIV_TOKEN = 4
+    MIN_VALID = 5
+
+    def __init__(self, cfg={}):
+        super(PersonageContextDAEmbeddingSeq2SeqExtract, self).__init__(cfg)
+        self.dict_token = {'UNK_TOKEN': self.UNK_TOKEN}
+        self.max_context_len = cfg.get('max_context_len', 30)
+        # use a special token to separate context from the DA
+        self.use_div_token = cfg.get('use_div_token', False)
+        # fix 1/2 output for context, 1/2 for DAs
+        self.fixed_divide = cfg.get('nn_type', '') == 'emb_attention_seq2seq_context'
+        if self.fixed_divide:
+            self.max_context_len = 3 * self.max_da_len  # context length is defined by DA length
+            self.use_div_token = False  # this wouldn't make sense
+
+    def init_dict(self, train_data, dict_ord=None):
+        """Initialize dictionaries for context tokens and input DAs."""
+        # init dicts for DAs
+        dict_ord = super(PersonageContextDAEmbeddingSeq2SeqExtract, self).init_dict(
+                [da for _, da in train_data], dict_ord)
+
+        # init dicts for context tokens
+        #todo remove dictionary construction for context data as it is num values only
+        for context_toks, _ in train_data:
+            for context_tok in context_toks:
+                if context_tok not in self.dict_token:
+                    self.dict_token[context_tok] = dict_ord
+                    dict_ord += 1
+        return dict_ord
+
+    def get_embeddings(self, in_data):
+        """Get the embedding IDs, given the current context and input DA (as a tuple)."""
+        context, da = in_data
+        if self.fixed_divide:
+            da_emb = super(PersonageContextDAEmbeddingSeq2SeqExtract, self).get_embeddings(da, pad=True)
+        else:
+            da_emb = super(PersonageContextDAEmbeddingSeq2SeqExtract, self).get_embeddings(da, pad=False)
+        max_context_len = (self.max_context_len + 3 * self.max_da_len) - len(da_emb)
+        context_emb = []
+        for tok in context[-max_context_len:]:
+            context_emb.append(self.dict_token.get(tok, self.UNK_TOKEN))
+
+        padding = [self.UNK_TOKEN] * (max_context_len - len(context))
+
+        if self.use_div_token:
+            return padding + context_emb + [self.DIV_TOKEN] + da_emb
+        return padding + context_emb + da_emb
+
+    def get_embeddings_shape(self):
+        return [self.max_context_len + 3 * self.max_da_len + (1 if self.use_div_token else 0)]
+
 
 class TreeEmbeddingSeq2SeqExtract(EmbeddingExtract):
     # TODO try relative parents (good for non-projective, may be bad for non-local) ???

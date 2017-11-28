@@ -25,6 +25,7 @@ config = {
           'context_bleu_weight': 3,
           'average_models': True,
           'average_models_top_k': 3,
+          'use_personage_context': True,
 
           'validation_size': 2000,
           'validation_freq': 1,
