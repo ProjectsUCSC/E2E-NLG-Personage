@@ -87,6 +87,7 @@ def embedding_attention_seq2seq_context(encoder_inputs, decoder_inputs, cell,
         # build separate encoders
         encoder_cell = EmbeddingWrapper(cell, num_encoder_symbols, embedding_size)
         with vs.variable_scope("context_rnn") as scope:
+            temp = tf.reshape(context_inputs, [-1, 1])#30])
             context_states = tf.cast(tf.layers.dense(temp, units=cell.output_size), dtype=dtype)
             context_outputs = tf.nn.relu(context_states, name="context_output")
 #            context_outputs, context_states = tf06s2s.rnn(
