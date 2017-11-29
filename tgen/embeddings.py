@@ -301,15 +301,15 @@ class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
         self.dict_token = []
         # init dicts for context tokens
         #todo remove dictionary construction for context data as it is num values only
-        for context_toks, _ in train_data:
-            for context_tok in context_toks:
-                if context_tok not in self.dict_token:
-                    # Shubhangi:instead of creating dictionary for context token, simply assigning the context_tok to dictionary
-                    self.dict_token += context_tok
-                    # self.dict_token[context_tok] = dict_ord
-                    # todo Shubhangi: find out why dict_ord is added here : what i know till now ,
-                    # is its used to estimate the vocab size so commenting out the increment for now
-                    # dict_ord += 1
+        # for context_toks, _ in train_data:
+        #     for context_tok in context_toks:
+        #         if context_tok not in self.dict_token:
+        #             # Shubhangi:instead of creating dictionary for context token, simply assigning the context_tok to dictionary
+        #             self.dict_token += [float(context_tok[0])]
+        #             # self.dict_token[context_tok] = dict_ord
+        #             # todo Shubhangi: find out why dict_ord is added here : what i know till now ,
+        #             # is its used to estimate the vocab size so commenting out the increment for now
+        #             # dict_ord += 1
         return dict_ord
 
     def get_embeddings(self, in_data):
@@ -320,14 +320,14 @@ class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
         else:
             da_emb = super(PersonageContextDAEmbeddingSeq2SeqExtract, self).get_embeddings(da, pad=False)
 
-        max_context_len = (self.max_context_len + 3 * self.max_da_len) - len(da_emb)
+        max_context_len = len(context)#(self.max_context_len + 3 * self.max_da_len) - len(da_emb)
 
         # Shubhangi: what this step essentially does is it replaces the context words by their token, with UNK as default.
         # again , we don't need this since our context data is essentially vectors therefore commenting this out
         # similary we don't need context embedding , that's exactly what context is already .
 
         # context_emb = []
-        context_emb = context
+        context_emb = [float(parameter[0]) for parameter in context]
 
         # for tok in context[-max_context_len:]:
         #     context_emb.append(self.dict_token.get(tok, self.UNK_TOKEN))
@@ -340,6 +340,7 @@ class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
         # essentially what this is doing is concatenating the arrays and sending
         if self.use_div_token:
             return padding + context_emb + [self.DIV_TOKEN] + da_emb
+        x = padding + context_emb + da_emb
         return padding + context_emb + da_emb
 
     def get_embeddings_shape(self):

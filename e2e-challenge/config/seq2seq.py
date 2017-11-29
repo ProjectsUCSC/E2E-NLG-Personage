@@ -51,7 +51,7 @@ config = {
               'nn_shape': 'rnn',
               'num_hidden_units': 128,
               #'passes': 200,
-              'passes': 1,
+              'passes': 0,
               'min_passes': 5,
               'randomize': True,
               'batch_size': 20,
