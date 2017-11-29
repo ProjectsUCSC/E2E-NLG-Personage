@@ -6,6 +6,7 @@ Extracting embeddings from DAs and trees (basically dictionaries with indexes).
 """
 
 from __future__ import unicode_literals
+
 from tgen.tree import TreeData, NodeData
 
 
@@ -268,7 +269,11 @@ class ContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
         return [self.max_context_len + 3 * self.max_da_len + (1 if self.use_div_token else 0)]
 
 class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
-    """This encodes both context user utterance and input DA into a combined embedding (list of IDs)"""
+    """Shubhangi: This class is when we used Personage Parameters as context. 
+       It encodes both context user utterance and input DA into a combined embedding (list of IDs)
+       The difference is our context is now a set of discrete numerical values instead of words. 
+       Therefore we can completely skip the vectorization and dictionary creation for context.
+       todo this might have repurcussions in other methods, which has to be examined. """
 
     UNK_TOKEN = 3
     DIV_TOKEN = 4
@@ -292,13 +297,19 @@ class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
         dict_ord = super(PersonageContextDAEmbeddingSeq2SeqExtract, self).init_dict(
                 [da for _, da in train_data], dict_ord)
 
+        # changing dict_token to a list , might need to rename this , we don't need unks now
+        self.dict_token = []
         # init dicts for context tokens
         #todo remove dictionary construction for context data as it is num values only
         for context_toks, _ in train_data:
             for context_tok in context_toks:
                 if context_tok not in self.dict_token:
-                    self.dict_token[context_tok] = dict_ord
-                    dict_ord += 1
+                    # Shubhangi:instead of creating dictionary for context token, simply assigning the context_tok to dictionary
+                    self.dict_token += context_tok
+                    # self.dict_token[context_tok] = dict_ord
+                    # todo Shubhangi: find out why dict_ord is added here : what i know till now ,
+                    # is its used to estimate the vocab size so commenting out the increment for now
+                    # dict_ord += 1
         return dict_ord
 
     def get_embeddings(self, in_data):
@@ -308,13 +319,25 @@ class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
             da_emb = super(PersonageContextDAEmbeddingSeq2SeqExtract, self).get_embeddings(da, pad=True)
         else:
             da_emb = super(PersonageContextDAEmbeddingSeq2SeqExtract, self).get_embeddings(da, pad=False)
-        max_context_len = (self.max_context_len + 3 * self.max_da_len) - len(da_emb)
-        context_emb = []
-        for tok in context[-max_context_len:]:
-            context_emb.append(self.dict_token.get(tok, self.UNK_TOKEN))
 
+        max_context_len = (self.max_context_len + 3 * self.max_da_len) - len(da_emb)
+
+        # Shubhangi: what this step essentially does is it replaces the context words by their token, with UNK as default.
+        # again , we don't need this since our context data is essentially vectors therefore commenting this out
+        # similary we don't need context embedding , that's exactly what context is already .
+
+        # context_emb = []
+        context_emb = context
+
+        # for tok in context[-max_context_len:]:
+        #     context_emb.append(self.dict_token.get(tok, self.UNK_TOKEN))
+
+        # Shubhangi: padding is needed because each context sentence could be of different length ,
+        # we don't need to include context in padding as we're going to have a fixed size
         padding = [self.UNK_TOKEN] * (max_context_len - len(context))
 
+        # Shubhangi: padding might be harmless for now therefore not removing ,
+        # essentially what this is doing is concatenating the arrays and sending
         if self.use_div_token:
             return padding + context_emb + [self.DIV_TOKEN] + da_emb
         return padding + context_emb + da_emb
