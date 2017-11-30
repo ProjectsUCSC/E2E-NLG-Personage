@@ -8,6 +8,7 @@ Extracting embeddings from DAs and trees (basically dictionaries with indexes).
 from __future__ import unicode_literals
 
 from tgen.tree import TreeData, NodeData
+import numpy as np
 
 
 class EmbeddingExtract(object):
@@ -291,6 +292,9 @@ class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
             self.max_context_len = 3 * self.max_da_len  # context length is defined by DA length
             self.use_div_token = False  # this wouldn't make sense
 
+        #todo sharath override
+        self.max_context_len = 71
+
     def init_dict(self, train_data, dict_ord=None):
         """Initialize dictionaries for context tokens and input DAs."""
         # init dicts for DAs
@@ -320,6 +324,7 @@ class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
         else:
             da_emb = super(PersonageContextDAEmbeddingSeq2SeqExtract, self).get_embeddings(da, pad=False)
 
+        #todo context length override sharath
         max_context_len = len(context)#(self.max_context_len + 3 * self.max_da_len) - len(da_emb)
 
         # Shubhangi: what this step essentially does is it replaces the context words by their token, with UNK as default.
@@ -334,13 +339,13 @@ class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
 
         # Shubhangi: padding is needed because each context sentence could be of different length ,
         # we don't need to include context in padding as we're going to have a fixed size
+        # (max_context_len - len(context)) = 0
         padding = [self.UNK_TOKEN] * (max_context_len - len(context))
 
         # Shubhangi: padding might be harmless for now therefore not removing ,
         # essentially what this is doing is concatenating the arrays and sending
         if self.use_div_token:
             return padding + context_emb + [self.DIV_TOKEN] + da_emb
-        x = padding + context_emb + da_emb
         return padding + context_emb + da_emb
 
     def get_embeddings_shape(self):

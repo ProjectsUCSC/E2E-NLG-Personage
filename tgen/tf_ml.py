@@ -70,7 +70,7 @@ def embedding_attention_seq2seq_context(encoder_inputs, decoder_inputs, cell,
                                         embedding_size,
                                         num_heads=1, output_projection=None,
                                         feed_previous=False, dtype=dtypes.float32,
-                                        scope=None):
+                                        scope=None, fc_context_length = 71):
     """A seq2seq architecture with two encoders, one for context, one for input DA. The decoder
     uses twice the cell size. Code adapted from TensorFlow examples."""
 
@@ -80,14 +80,13 @@ def embedding_attention_seq2seq_context(encoder_inputs, decoder_inputs, cell,
         
         # Context input is not a sequence anymore.
 
-        # context_inputs = encoder_inputs[0:len(encoder_inputs) / 2]
-        context_inputs = encoder_inputs[0:71]
-        encoder_inputs = encoder_inputs[71:]
+        context_inputs = encoder_inputs[0:fc_context_length]
+        encoder_inputs = encoder_inputs[fc_context_length:]
 
         # build separate encoders
         encoder_cell = EmbeddingWrapper(cell, num_encoder_symbols, embedding_size)
         with vs.variable_scope("context_rnn") as scope:
-            temp = tf.reshape(context_inputs, [-1, 71])#30])
+            temp = tf.reshape(context_inputs, [-1, fc_context_length])#30])
             context_states = tf.cast(tf.layers.dense(temp, units=cell.output_size), dtype=dtype)
             context_outputs = tf.nn.relu(context_states, name="context_output")
 #            context_outputs, context_states = tf06s2s.rnn(
