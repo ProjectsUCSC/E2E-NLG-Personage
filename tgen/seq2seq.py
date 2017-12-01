@@ -700,6 +700,10 @@ class Seq2SeqGen(Seq2SeqBase, TFModel):
         self.enc_inputs = []
         self.enc_inputs_drop = []
         for i in xrange(self.max_da_len):
+            # #todo sharath changes
+            # if i == 0:
+            #     enc_input = tf.placeholder(tf.float32, [None, 71], name=('enc_inp-%d' % i))
+            # else:
             enc_input = tf.placeholder(tf.int32, [None], name=('enc_inp-%d' % i))
             self.enc_inputs.append(enc_input)
             if self.dropout_keep_prob < 1:
