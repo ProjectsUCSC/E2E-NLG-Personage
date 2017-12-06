@@ -32,6 +32,7 @@ class Detokenizer(object):
         """\
         Detokenize the given text.
         """
+        replace_with_blank = ["somewhat rather", "sort of", "somewhat", "rather"]
         text = ' ' + text + ' '
         text = self._dash_fixes.sub(r' \1-\2 ', text)
         text = self._dash_fixes2.sub(r' \1-\2 ', text)
@@ -39,6 +40,8 @@ class Detokenizer(object):
         text = self._noprespace_punct.sub(r'\1 ', text)
         text = self._contract.sub(r" \1'\2", text)
         text = text.strip()
+        for word in replace_with_blank:
+            text = text.replace(word, "");
         # capitalize
         if not text:
             return ''

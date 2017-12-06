@@ -165,7 +165,7 @@ class DA(object):
     def parse_diligent_da_hedge(da, row, hedges):
         """Parse a Diligent-style flat MR (E2E NLG dataset) string into a DA object."""
         for hedge in hedges:
-            da.append(DAI('hedge', hedge, row[hedge]))
+            da.append(DAI('hedge', str(hedge), str(row[hedge])))
         return da
 
 
