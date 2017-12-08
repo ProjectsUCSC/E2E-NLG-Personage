@@ -185,6 +185,22 @@ class DA(object):
         return da
 
     @staticmethod
+    def parse_diligent_da(da_text, voice1, voice2):
+        """Parse a Diligent-style flat MR (E2E NLG dataset) string into a DA object."""
+        da = DA()
+
+        for dai_text in re.finditer(r'([a-zA-Z]+)\[([^\]]*)\]', da_text):
+            slot, value = dai_text.groups()
+            slot = re.sub(r'([A-Z])', r'_\1', slot).lower()
+            da.append(DAI('inform', slot, value if value else None))
+
+
+        da.append(DAI('convert', 'personality', voice1 ))
+        da.append(DAI('convert', 'personality', voice2 ))
+
+        return da
+
+    @staticmethod
     def parse_cambridge_da(da_text):
         """Parse a Cambridge-style DA string a DA object."""
         da = DA()
@@ -301,6 +317,7 @@ class DA(object):
         """Convert to Diligent E2E dataset flat MR string (opposite of parse_diligent_da).
         Note that all DA type information is lost."""
         return ', '.join([dai.slot + '[' + dai.value + ']' for dai in self])
+
 
 
 class Abst(object):
