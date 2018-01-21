@@ -166,7 +166,7 @@ class DAEmbeddingSeq2SeqExtract(EmbeddingExtract):
         self.dict_act = {'UNK_ACT': self.UNK_ACT}
         self.dict_slot = {'UNK_SLOT': self.UNK_SLOT}
         self.dict_value = {'UNK_VALUE': self.UNK_VALUE}
-        self.max_da_len = cfg.get('max_da_len', 10)
+        self.max_da_len = cfg.get('max_da_len', 17)
         self.sort = cfg.get('sort_da_emb', False)
 
     def init_dict(self, train_das, dict_ord=None):

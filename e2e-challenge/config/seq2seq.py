@@ -26,7 +26,7 @@ config = {
           'average_models': True,
           'average_models_top_k': 3,
           'use_personage_context': True,
-
+          'max_da_len':17,
           'validation_size': 2000,
           'validation_freq': 1,
           'validation_use_all_refs': True,
