@@ -26,13 +26,13 @@ def add_multiple_voices(das_filename, abst_filename):
             voice_old = line.split('&')[0].split('=')[1].replace(')','')
             # print(voice_old)
             for voice in voices_list:
-                if voice == voice_old:
+                if voice == voice_old: #dont add the same voice twice
                     continue
-                if voice == voice_opp_dict.get(voice_old):
+                if voice == voice_opp_dict.get(voice_old): #dont add the opposite voice
                     continue
                 line2 = template + voice + ")&" + line
                 # print(abst_line)
-                abst2.write(abst_line)
+                abst2.write(abst_line)  #copy the abst
                 file2.write(line2)
 
 
