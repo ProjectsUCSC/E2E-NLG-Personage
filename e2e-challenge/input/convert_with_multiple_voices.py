@@ -72,7 +72,7 @@ def convert(args):
         csvread = csv.reader(fh, encoding='UTF-8')
         csvread.next()  # skip header
         for mr, text, voice1, voice2 in csvread:
-            da = DA.parse_diligent_da(mr, voice1, voice2)
+            da = DA.parse_diligent_da_multi(mr, voice1, voice2)
             process_instance(da, text)
             insts += 1
 

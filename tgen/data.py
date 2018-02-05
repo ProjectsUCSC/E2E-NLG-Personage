@@ -185,7 +185,7 @@ class DA(object):
         return da
 
     @staticmethod
-    def parse_diligent_da(da_text, voice1, voice2):
+    def parse_diligent_da_multi(da_text, voice1, voice2):
         """Parse a Diligent-style flat MR (E2E NLG dataset) string into a DA object."""
         da = DA()
 

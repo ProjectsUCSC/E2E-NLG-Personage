@@ -34,8 +34,6 @@ def add_multiple_voices(das_filename, abst_filename):
                 # print(abst_line)
                 abst2.write(abst_line)  #copy the abst
                 file2.write(line2)
-
-
             line = fp.readline()
             abst_line = abst.readline()
 
