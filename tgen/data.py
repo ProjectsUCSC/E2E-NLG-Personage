@@ -185,6 +185,24 @@ class DA(object):
         return da
 
     @staticmethod
+    def parse_diligent_new_da(da_text, da_tag, key, value, voice=None):
+        """Parse a Diligent-style flat MR (E2E NLG dataset) string into a DA object."""
+        da = DA()
+
+        for dai_text in re.finditer(r'([a-zA-Z]+)\[([^\]]*)\]', da_text):
+            slot, value = dai_text.groups()
+            slot = re.sub(r'([A-Z])', r'_\1', slot).lower()
+            da.append(DAI('inform', slot, value if value else None))
+
+
+        da.append(DAI(da_tag, key, value))
+
+        if voice:
+            da.append(DAI('convert', 'personality', voice ))
+
+        return da
+
+    @staticmethod
     def parse_diligent_da_multi(da_text, voice1, voice2):
         """Parse a Diligent-style flat MR (E2E NLG dataset) string into a DA object."""
         da = DA()
