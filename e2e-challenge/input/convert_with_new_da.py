@@ -34,7 +34,7 @@ def filter_abst(abst, slots_to_abstract):
     return [a for a in abst if a.slot in slots_to_abstract]
 
 
-def convert(args):
+def convert(args,da_tag ,key):
     """Main function – read in the CSV data and output TGEN-specific files."""
 
     # find out which slots should be abstracted (from command-line argument)
@@ -71,8 +71,9 @@ def convert(args):
     with open(args.in_file, 'r') as fh:
         csvread = csv.reader(fh, encoding='UTF-8')
         csvread.next()  # skip header
-        for mr, text, voice1, voice2 in csvread:
-            da = DA.parse_diligent_da_multi(mr, voice1, voice2)
+        for mr, text, voice, value in csvread:
+            # da = DA.parse_diligent_da(mr, voice)
+            da = DA.parse_diligent_new_da(mr, da_tag, key, value, voice)
             process_instance(da, text)
             insts += 1
 
@@ -136,4 +137,8 @@ if __name__ == '__main__':
                       help='Multiple reference mode: relexicalize all possible references', action='store_true')
     argp.add_argument('-n', '--slot-names', help='Include slot names in delexicalized texts', action='store_true')
     args = argp.parse_args()
-    convert(args)
+    da_tag=''
+    key = ''
+    # value = ''
+
+    convert(args, da_tag, key)

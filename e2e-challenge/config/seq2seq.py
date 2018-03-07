@@ -16,7 +16,7 @@ config = {
           'max_cores': 4,
           'mode': 'tokens',
           'nn_type': 'emb_attention_seq2seq_context',
-          'sort_da_emb': True,
+          'sort_da_emb': False,
           'cell_type': 'lstm',
           'dropout_keep_prob': 1,
           'use_dec_cost': False,

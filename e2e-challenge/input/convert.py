@@ -54,12 +54,12 @@ def convert(args):
     insts = 0
 
     def process_instance(da, conc):
-        da.sort()
+        #da.sort()
         conc_das.append(da)
 
         text, da, abst = delex_sent(da, tokenize(conc), slots_to_abstract, args.slot_names, repeated=True)
         text = text.lower().replace('x-', 'X-')  # lowercase all but placeholders
-        da.sort()
+        #da.sort()
 
         da_keys[unicode(da)] = da_keys.get(unicode(da), 0) + 1
         das.append(da)
