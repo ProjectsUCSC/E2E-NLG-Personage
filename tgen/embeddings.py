@@ -283,17 +283,17 @@ class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
     def __init__(self, cfg={}):
         super(PersonageContextDAEmbeddingSeq2SeqExtract, self).__init__(cfg)
         self.dict_token = {'UNK_TOKEN': self.UNK_TOKEN}
-        self.max_context_len = cfg.get('max_context_len', 30)
+
+        self.max_context_len = cfg.get('context_length', 71)
+
         # use a special token to separate context from the DA
         self.use_div_token = cfg.get('use_div_token', False)
         # fix 1/2 output for context, 1/2 for DAs
         self.fixed_divide = cfg.get('nn_type', '') == 'emb_attention_seq2seq_context'
-        if self.fixed_divide:
-            self.max_context_len = 3 * self.max_da_len  # context length is defined by DA length
-            self.use_div_token = False  # this wouldn't make sense
+        # if self.fixed_divide:
+        #     self.max_context_len = 3 * self.max_da_len  # context length is defined by DA length
+        #     self.use_div_token = False  # this wouldn't make sense
 
-        #todo sharath override
-        self.max_context_len = 71
 
     def init_dict(self, train_data, dict_ord=None):
         """Initialize dictionaries for context tokens and input DAs."""
@@ -324,9 +324,6 @@ class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
         else:
             da_emb = super(PersonageContextDAEmbeddingSeq2SeqExtract, self).get_embeddings(da, pad=False)
 
-        #todo context length override sharath
-        max_context_len = len(context)#(self.max_context_len + 3 * self.max_da_len) - len(da_emb)
-
         # Shubhangi: what this step essentially does is it replaces the context words by their token, with UNK as default.
         # again , we don't need this since our context data is essentially vectors therefore commenting this out
         # similary we don't need context embedding , that's exactly what context is already .
@@ -340,13 +337,17 @@ class PersonageContextDAEmbeddingSeq2SeqExtract(DAEmbeddingSeq2SeqExtract):
         # Shubhangi: padding is needed because each context sentence could be of different length ,
         # we don't need to include context in padding as we're going to have a fixed size
         # (max_context_len - len(context)) = 0
-        padding = [self.UNK_TOKEN] * (max_context_len - len(context))
+
+
+        # padding = [self.UNK_TOKEN] * (max_context_len - len(context))
 
         # Shubhangi: padding might be harmless for now therefore not removing ,
         # essentially what this is doing is concatenating the arrays and sending
         if self.use_div_token:
-            return padding + context_emb + [self.DIV_TOKEN] + da_emb
-        return padding + context_emb + da_emb
+            return context_emb + [self.DIV_TOKEN] + da_emb
+            # return padding + context_emb + [self.DIV_TOKEN] + da_emb
+        # return padding + context_emb + da_emb
+        return context_emb + da_emb
 
     def get_embeddings_shape(self):
         return [self.max_context_len + 3 * self.max_da_len + (1 if self.use_div_token else 0)]

@@ -40,6 +40,7 @@ config = {
           'top_k': 3,
           'bleu_validation_weight': 1,
           'beam_size': 10,
+          'context_length': 71,
           'alpha_decay': 0, # 0.03
 
          'classif_filter': {

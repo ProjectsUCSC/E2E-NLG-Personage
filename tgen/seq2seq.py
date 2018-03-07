@@ -401,6 +401,8 @@ class Seq2SeqGen(Seq2SeqBase, TFModel):
 
         self.use_personage_context = cfg.get('use_personage_context', False)
 
+        # Retrieve Max Personage parameter length
+        self.max_context_length = cfg.get('context_length', 71)
         # Train Summaries
         self.loss_summary_seq2seq = None
 
@@ -429,6 +431,13 @@ class Seq2SeqGen(Seq2SeqBase, TFModel):
         if self.use_context:
             das = self._load_contexts(das, context_file)
 
+        input_context_length = len(das[0][0])
+
+        if input_context_length != self.max_context_length:
+            raise ValueError("Found %d parameters in Personage Context. Expected %d"
+                             % (input_context_length, self.max_context_length))
+
+        log_info('Found ' + str(input_context_length) + ' parameters from Personage as Context.')
         # make training data smaller if necessary
         train_size = int(round(data_portion * len(trees)))
         self.train_trees = trees[:train_size]
@@ -745,22 +754,44 @@ class Seq2SeqGen(Seq2SeqBase, TFModel):
             # for training: feed_previous == False, using dropout if available
             # outputs = batch_size * num_decoder_symbols ~ i.e. output logits at each steps
             # states = cell states at each steps
-            self.outputs, self.states = rnn_func(
-                self.enc_inputs_drop if self.enc_inputs_drop else self.enc_inputs,
-                self.dec_inputs, self.cell,
-                self.da_dict_size, self.tree_dict_size,
-                self.emb_size,
-                scope=scope)
 
-            scope.reuse_variables()
+            if self.nn_type == 'emb_attention_seq2seq' or self.nn_type == 'emb_attention2_seq2seq':
 
-            # for decoding: feed_previous == True
-            self.dec_outputs, self.dec_states = rnn_func(
-                self.enc_inputs, self.dec_inputs, self.cell,
-                self.da_dict_size, self.tree_dict_size,
-                self.emb_size,
-                feed_previous=True, scope=scope)
+                self.outputs, self.states = rnn_func(
+                    self.enc_inputs_drop if self.enc_inputs_drop else self.enc_inputs,
+                    self.dec_inputs, self.cell,
+                    self.da_dict_size, self.tree_dict_size,
+                    self.emb_size,
+                    scope=scope)
 
+                scope.reuse_variables()
+
+                # for decoding: feed_previous == True
+                self.dec_outputs, self.dec_states = rnn_func(
+                    self.enc_inputs, self.dec_inputs, self.cell,
+                    self.da_dict_size, self.tree_dict_size,
+                    self.emb_size,
+                    feed_previous=True, scope=scope)
+
+            elif self.nn_type == 'emb_attention_seq2seq_context':
+
+                self.outputs, self.states = rnn_func(
+                    self.enc_inputs_drop if self.enc_inputs_drop else self.enc_inputs,
+                    self.dec_inputs, self.cell,
+                    self.da_dict_size, self.tree_dict_size,
+                    self.emb_size,
+                    self.max_context_length,
+                    scope=scope)
+
+                scope.reuse_variables()
+
+                # for decoding: feed_previous == True
+                self.dec_outputs, self.dec_states = rnn_func(
+                    self.enc_inputs, self.dec_inputs, self.cell,
+                    self.da_dict_size, self.tree_dict_size,
+                    self.emb_size,
+                    self.max_context_length,
+                    feed_previous=True, scope=scope)
         # TODO use output projection ???
 
         # target weights
